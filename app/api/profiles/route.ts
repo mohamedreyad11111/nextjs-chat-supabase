@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '../../../lib/supabase'
+import { supabaseAdmin } from '../../../lib/supabase-server'
 
 export async function POST(request: NextRequest) {
   try {
@@ -51,6 +51,18 @@ export async function GET() {
       return NextResponse.json(
         { error: 'Failed to fetch profiles' },
         { status: 500 }
+      )
+    }
+
+    return NextResponse.json({ data }, { status: 200 })
+  } catch (error) {
+    console.error('Server error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}}
       )
     }
 

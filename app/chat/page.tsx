@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useRouter } from 'next/navigation'
-import { createSupabaseClient } from '../../lib/supabase'
+import { supabase } from '../../lib/supabase'
 
 interface Message {
   id: string
@@ -17,10 +17,9 @@ export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [loading, setLoading] = useState(false)
-  const { user, signOut } = useAuth()
+  const { user, session, signOut } = useAuth()
   const router = useRouter()
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const supabase = createSupabaseClient()
 
   useEffect(() => {
     if (!user) {
@@ -46,7 +45,7 @@ export default function Chat() {
     return () => {
       messagesSubscription.unsubscribe()
     }
-  }, [user, router, supabase])
+  }, [user, router])
 
   useEffect(() => {
     scrollToBottom()
@@ -54,7 +53,14 @@ export default function Chat() {
 
   const fetchMessages = async () => {
     try {
-      const response = await fetch('/api/messages')
+      if (!session?.access_token) return
+      
+      const response = await fetch('/api/messages', {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+      })
+      
       if (response.ok) {
         const result = await response.json()
         setMessages(result.data || [])
@@ -70,7 +76,7 @@ export default function Chat() {
 
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newMessage.trim() || !user || loading) return
+    if (!newMessage.trim() || !user || loading || !session?.access_token) return
 
     try {
       setLoading(true)
@@ -78,6 +84,7 @@ export default function Chat() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
           text: newMessage.trim(),

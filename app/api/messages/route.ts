@@ -1,20 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createSupabaseServerClient } from '../../../lib/supabase'
+import { supabase } from '../../../lib/supabase'
+import { supabaseAdmin } from '../../../lib/supabase-server'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const supabase = createSupabaseServerClient()
-
-    // Check if user is authenticated
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
+    // Get authorization header
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'No authorization header' },
         { status: 401 }
       )
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('messages')
       .select('*')
       .order('created_at', { ascending: true })
@@ -39,10 +38,19 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createSupabaseServerClient()
+    // Get authorization header
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader) {
+      return NextResponse.json(
+        { error: 'No authorization header' },
+        { status: 401 }
+      )
+    }
 
-    // Check if user is authenticated
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const token = authHeader.replace('Bearer ', '')
+    
+    // Verify user with token
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
     if (authError || !user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -60,13 +68,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user profile for display name
-    const { data: profile } = await supabase
+    const { data: profile } = await supabaseAdmin
       .from('profiles')
       .select('display_name')
       .eq('id', user.id)
       .single()
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('messages')
       .insert({
         text: text.trim(),

@@ -1,26 +1,9 @@
-import { createClientComponentClient, createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { createClient } from '@supabase/supabase-js'
-import { cookies } from 'next/headers'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
-// Client for client components
-export const createSupabaseClient = () => createClientComponentClient()
-
-// Client for server components
-export const createSupabaseServerClient = () => createServerComponentClient({ cookies })
-
-// Client for API routes with service role
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false
-  }
-})
-
-// Regular client for client-side usage
+// Client for client-side usage
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 export type Database = {

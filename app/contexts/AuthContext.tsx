@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { User, Session } from '@supabase/supabase-js'
-import { createSupabaseClient } from '../../lib/supabase'
+import { supabase } from '../../lib/supabase'
 import { useRouter } from 'next/navigation'
 
 interface AuthContextType {
@@ -28,7 +28,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
-  const supabase = createSupabaseClient()
   const router = useRouter()
 
   useEffect(() => {
@@ -56,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     )
 
     return () => subscription.unsubscribe()
-  }, [supabase.auth, router])
+  }, [router])
 
   const signUp = async (email: string, password: string, displayName: string) => {
     const { data, error } = await supabase.auth.signUp({

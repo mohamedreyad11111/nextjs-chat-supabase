@@ -62,16 +62,4 @@ export async function GET() {
       { status: 500 }
     )
   }
-}}
-      )
-    }
-
-    return NextResponse.json({ data }, { status: 200 })
-  } catch (error) {
-    console.error('Server error:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
-  }
 }
